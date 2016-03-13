@@ -38,6 +38,8 @@ public class MyActivity extends Activity implements OnClickListener {
     private final static String ACCESS_SECRET = "xtlw9ot6sgse4kg";
     private final static AccessType ACCESS_TYPE = AccessType.DROPBOX;
 
+    private String accessToken;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,7 +55,10 @@ public class MyActivity extends Activity implements OnClickListener {
         downloadFileBtn = (Button) findViewById(R.id.downloadFileBtn);
         downloadFileBtn.setOnClickListener(this);
 
-        loggedIn(false);
+        if (!isDropboxLinked())
+            loggedIn(false);
+        else
+            loggedIn(true);
 
         AppKeyPair appKeyPair = new AppKeyPair(ACCESS_KEY, ACCESS_SECRET);
 
@@ -87,6 +92,8 @@ public class MyActivity extends Activity implements OnClickListener {
                 editor.putString(ACCESS_SECRET, tokens.secret);
                 editor.commit();
 
+                String accessToken = dropboxApi.getSession().getOAuth2AccessToken();
+
                 loggedIn(true);
             } catch (IllegalStateException e) {
                 Toast.makeText(this, "Error during Dropbox authentication",
@@ -114,8 +121,8 @@ public class MyActivity extends Activity implements OnClickListener {
             case R.id.loginBtn:
                 if (isUserLoggedIn)
                 {
-                    dropboxApi.getSession().unlink();
-                    loggedIn(false);
+                    //dropboxApi.getSession().unlink();
+                    //loggedIn(false);
                 } else
                 {
                     dropboxApi.getSession().startAuthentication(MyActivity.this);
@@ -146,6 +153,10 @@ public class MyActivity extends Activity implements OnClickListener {
         listFilesBtn.setBackgroundColor(userLoggedIn ? Color.BLUE : Color.GRAY);
         downloadFileBtn.setEnabled(userLoggedIn);
         downloadFileBtn.setBackgroundColor(userLoggedIn ? Color.BLUE : Color.GRAY);
+    }
+
+    public boolean isDropboxLinked() {
+        return dropboxApi != null && (dropboxApi.getSession().isLinked() || dropboxApi.getSession().authenticationSuccessful());
     }
 
 
